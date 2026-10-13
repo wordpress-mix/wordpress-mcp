@@ -1,0 +1,48 @@
+{
+  "name": "wordpress-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server kết nối và quản trị WordPress qua REST API",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "wordpress-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --banner:js=\"#!/usr/bin/env node\" --outfile=dist/index.js --minify",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "node --import tsx --test"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "wordpress",
+    "wordpress-api",
+    "ai-agent"
+  ],
+  "author": "wordpress-mix",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wordpress-mix/wordpress-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wordpress-mix/wordpress-mcp/issues"
+  },
+  "homepage": "https://github.com/wordpress-mix/wordpress-mcp#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
