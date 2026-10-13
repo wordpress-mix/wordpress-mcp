@@ -45,6 +45,13 @@ Model Context Protocol (MCP) server xây dựng bằng **Node.js** & **TypeScrip
 - `wp_user_me`: Lấy thông tin tài khoản người dùng đang kết nối, quyền hạn và vai trò (roles, capabilities).
 - `wp_system_info`: Kiểm tra trạng thái kết nối WordPress REST API, URL website, phiên bản WordPress và múi giờ hệ thống.
 
+### 7. Tối Ưu SEO với RankMath (RankMath SEO)
+- `wp_rankmath_get_seo`: Lấy chi tiết siêu dữ liệu SEO của bài viết hoặc trang (tiêu đề SEO, mô tả SEO, từ khóa chính và danh sách từ khóa phụ).
+- `wp_rankmath_update_seo`: Cập nhật toàn diện siêu dữ liệu SEO (tiêu đề, mô tả, từ khóa 1 chính + tối đa 4 phụ, canonical URL).
+- `wp_rankmath_set_title`: Cập nhật riêng tiêu đề SEO RankMath (`rank_math_title`, khuyến nghị 50-60 ký tự).
+- `wp_rankmath_set_description`: Cập nhật riêng mô tả SEO Meta Description (`rank_math_description`, khuyến nghị 120-160 ký tự, kèm CTA).
+- `wp_rankmath_set_keywords`: Cập nhật bộ từ khóa SEO gồm đúng 1 từ khóa chính (`primary_keyword`) và tối đa 4 từ khóa phụ (`secondary_keywords`), tự động format theo định dạng chuẩn của RankMath.
+
 ---
 
 ## Cài Đặt & Build
@@ -161,7 +168,8 @@ Nếu bạn đang phát triển hoặc muốn chạy trực tiếp file bundle s
 │       ├── media.tools.ts    # Các công cụ quản lý Media
 │       ├── taxonomy.tools.ts # Các công cụ quản lý Categories & Tags
 │       ├── comment.tools.ts  # Các công cụ quản lý Bình luận
-│       └── system.tools.ts   # Công cụ kiểm tra hệ thống và tài khoản
+│       ├── system.tools.ts   # Công cụ kiểm tra hệ thống và tài khoản
+│       └── rankmath.tools.ts # Các công cụ tối ưu RankMath SEO (tiêu đề, mô tả, từ khóa)
 ├── test/
 │   └── self-check.test.ts    # Unit test tự động
 ├── dist/                     # Thư mục chứa 1 file bundle duy nhất sau khi build

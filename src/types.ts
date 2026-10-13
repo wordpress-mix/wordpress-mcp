@@ -144,3 +144,17 @@ export interface WpSystemInfo {
   authenticated: boolean;
   currentUser?: string;
 }
+
+export interface RankMathSeoData {
+  postId: number;
+  postType: string;
+  title?: string;
+  description?: string;
+  primaryKeyword?: string;
+  secondaryKeywords: string[];
+  focusKeywordsRaw?: string;
+  canonicalUrl?: string;
+  robots?: string[];
+  metaRaw?: Record<string, unknown>;
+}
+

@@ -6,6 +6,7 @@ import type { ApiResponse } from './types.js';
 
 export class WordPressApiClient {
   private readonly baseUrl: string;
+  private readonly siteUrl: string;
   private readonly username: string;
   private readonly appPassword: string;
 
@@ -15,6 +16,8 @@ export class WordPressApiClient {
     appPassword: string = config.wpAppPassword
   ) {
     const cleanUrl = wpUrl.replace(/\/+$/, '');
+    this.siteUrl = cleanUrl.replace(/\/wp-json(\/wp\/v2)?$/, '');
+
     if (cleanUrl.endsWith('/wp-json/wp/v2')) {
       this.baseUrl = cleanUrl;
     } else if (cleanUrl.endsWith('/wp-json')) {
@@ -54,7 +57,9 @@ export class WordPressApiClient {
     queryParams?: Record<string, string | number | boolean | undefined>,
     customHeaders?: Record<string, string>
   ): Promise<ApiResponse<T>> {
-    let url = `${this.baseUrl}/${endpoint.replace(/^\/+/, '')}`;
+    let url = endpoint.startsWith('rankmath/')
+      ? `${this.siteUrl}/wp-json/${endpoint.replace(/^\/+/, '')}`
+      : `${this.baseUrl}/${endpoint.replace(/^\/+/, '')}`;
 
     if (queryParams) {
       const searchParams = new URLSearchParams();

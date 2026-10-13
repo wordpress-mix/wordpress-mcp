@@ -10,6 +10,7 @@ import { registerCommentTools } from '../src/tools/comment.tools.js';
 import { registerMediaTools } from '../src/tools/media.tools.js';
 import { registerPageTools } from '../src/tools/page.tools.js';
 import { registerPostTools } from '../src/tools/post.tools.js';
+import { registerRankMathTools } from '../src/tools/rankmath.tools.js';
 import { registerSystemTools } from '../src/tools/system.tools.js';
 import { registerTaxonomyTools } from '../src/tools/taxonomy.tools.js';
 
@@ -51,6 +52,7 @@ test('Đăng ký đầy đủ toàn bộ các MCP Tools WordPress', () => {
   registerTaxonomyTools(server);
   registerCommentTools(server);
   registerSystemTools(server);
+  registerRankMathTools(server);
 
   const registeredToolNames = Object.keys(
     (server as unknown as { _registeredTools: Record<string, unknown> })._registeredTools || {}
@@ -93,6 +95,12 @@ test('Đăng ký đầy đủ toàn bộ các MCP Tools WordPress', () => {
     // System & User
     'wp_user_me',
     'wp_system_info',
+    // RankMath SEO
+    'wp_rankmath_get_seo',
+    'wp_rankmath_update_seo',
+    'wp_rankmath_set_title',
+    'wp_rankmath_set_description',
+    'wp_rankmath_set_keywords',
   ];
 
   for (const toolName of expectedTools) {
@@ -113,6 +121,7 @@ test('Validation schema của các tools phản ánh đúng quy tắc WordPress 
   registerTaxonomyTools(server);
   registerCommentTools(server);
   registerSystemTools(server);
+  registerRankMathTools(server);
 
   const tools = (
     server as unknown as {
@@ -163,5 +172,48 @@ test('Validation schema của các tools phản ánh đúng quy tắc WordPress 
     }).success,
     false,
     'Email bình luận phải đúng định dạng'
+  );
+
+  // 4. wp_rankmath_set_keywords (1 chính, tối đa 4 phụ)
+  assert.equal(
+    tools.wp_rankmath_set_keywords.inputSchema.safeParse({
+      post_id: 1,
+      primary_keyword: 'WordPress SEO',
+      secondary_keywords: ['SEO bài viết', 'Tối ưu RankMath', 'Cách cài RankMath', 'Điểm SEO 100'],
+    }).success,
+    true
+  );
+  assert.equal(
+    tools.wp_rankmath_set_keywords.inputSchema.safeParse({
+      post_id: 1,
+      primary_keyword: 'WordPress SEO',
+      secondary_keywords: ['Phụ 1', 'Phụ 2', 'Phụ 3', 'Phụ 4', 'Phụ 5 vượt quá 4 từ'],
+    }).success,
+    false,
+    'Tối đa 4 từ khóa phụ'
+  );
+  assert.equal(
+    tools.wp_rankmath_set_keywords.inputSchema.safeParse({
+      post_id: 1,
+      primary_keyword: '',
+    }).success,
+    false,
+    'Từ khóa chính không được để trống'
+  );
+
+  // 5. wp_rankmath_set_title & wp_rankmath_set_description
+  assert.equal(
+    tools.wp_rankmath_set_title.inputSchema.safeParse({
+      post_id: 1,
+      title: 'Bí Quyết Tối Ưu RankMath SEO 2026',
+    }).success,
+    true
+  );
+  assert.equal(
+    tools.wp_rankmath_set_description.inputSchema.safeParse({
+      post_id: 1,
+      description: 'Khám phá hướng dẫn tối ưu RankMath SEO chi tiết giúp bài viết đạt 100/100 điểm. Xem ngay!',
+    }).success,
+    true
   );
 });

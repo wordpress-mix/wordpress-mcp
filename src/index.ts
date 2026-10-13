@@ -8,6 +8,7 @@ import { registerCommentTools } from './tools/comment.tools.js';
 import { registerMediaTools } from './tools/media.tools.js';
 import { registerPageTools } from './tools/page.tools.js';
 import { registerPostTools } from './tools/post.tools.js';
+import { registerRankMathTools } from './tools/rankmath.tools.js';
 import { registerSystemTools } from './tools/system.tools.js';
 import { registerTaxonomyTools } from './tools/taxonomy.tools.js';
 
@@ -17,13 +18,14 @@ const server = new McpServer({
   version: config.serverVersion,
 });
 
-// Đăng ký toàn bộ các nhóm công cụ WordPress
+// Đăng ký toàn bộ các nhóm công cụ WordPress & RankMath SEO
 registerPostTools(server);
 registerPageTools(server);
 registerMediaTools(server);
 registerTaxonomyTools(server);
 registerCommentTools(server);
 registerSystemTools(server);
+registerRankMathTools(server);
 
 // Stdio transport là chuẩn kết nối MCP cho AI client (Claude Desktop, Claude Code, Cursor)
 async function main(): Promise<void> {
