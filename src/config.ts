@@ -13,6 +13,6 @@ export const config: AppConfig = {
   wpUrl: process.env.WP_URL || process.env.WORDPRESS_URL || 'https://example.com',
   wpUsername: process.env.WP_USERNAME || process.env.WORDPRESS_USERNAME || '',
   wpAppPassword: process.env.WP_APP_PASSWORD || process.env.WORDPRESS_APP_PASSWORD || '',
-  serverName: 'wordpress-mcp',
+  serverName: 'wordpress-mcp-nodejs',
   serverVersion: '1.0.0',
 };

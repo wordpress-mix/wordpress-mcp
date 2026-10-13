@@ -1,11 +1,11 @@
 {
-  "name": "wordpress-mcp",
+  "name": "wordpress-mcp-nodejs",
   "version": "1.0.0",
   "description": "MCP Server kết nối và quản trị WordPress qua REST API",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "wordpress-mcp": "dist/index.js"
+    "wordpress-mcp-nodejs": "dist/index.js"
   },
   "files": [
     "dist"

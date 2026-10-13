@@ -15,7 +15,7 @@ import { registerSystemTools } from '../src/tools/system.tools.js';
 import { registerTaxonomyTools } from '../src/tools/taxonomy.tools.js';
 
 test('Cấu hình mặc định của WordPress MCP Server', () => {
-  assert.equal(config.serverName, 'wordpress-mcp');
+  assert.equal(config.serverName, 'wordpress-mcp-nodejs');
   assert.equal(config.serverVersion, '1.0.0');
   assert.ok(config.wpUrl.length > 0);
 });

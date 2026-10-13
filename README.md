@@ -94,7 +94,7 @@ WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
 > Vào trang quản trị WordPress -> **Users (Thành viên)** -> **Profile (Hồ sơ của bạn)** -> cuộn xuống mục **Application Passwords (Mật khẩu ứng dụng)** -> Nhập tên ứng dụng và nhấn **Add New Application Password**.
 
 ### 2. Cách 1: Sử dụng trực tiếp qua NPM với `npx` (Khuyên dùng - Không cần path file)
-Khi package được xuất bản lên NPM Registry với tên [`wordpress-mcp`](https://www.npmjs.com/package/wordpress-mcp), bạn có thể cấu hình client chạy trực tiếp mà **không cần clone mã nguồn hay khai báo đường dẫn file**:
+Khi package được xuất bản lên NPM Registry với tên [`wordpress-mcp-nodejs`](https://www.npmjs.com/package/wordpress-mcp-nodejs), bạn có thể cấu hình client chạy trực tiếp mà **không cần clone mã nguồn hay khai báo đường dẫn file**:
 
 #### Cấu hình Claude Desktop (`claude_desktop_config.json`)
 ```json
@@ -104,7 +104,7 @@ Khi package được xuất bản lên NPM Registry với tên [`wordpress-mcp`]
       "command": "npx",
       "args": [
         "-y",
-        "wordpress-mcp@latest"
+        "wordpress-mcp-nodejs@latest"
       ],
       "env": {
         "WP_URL": "https://your-wordpress-site.com",
@@ -122,7 +122,7 @@ Khi package được xuất bản lên NPM Registry với tên [`wordpress-mcp`]
   "mcpServers": {
     "wordpress": {
       "command": "npx",
-      "args": ["-y", "wordpress-mcp@latest"],
+      "args": ["-y", "wordpress-mcp-nodejs@latest"],
       "env": {
         "WP_URL": "https://your-wordpress-site.com",
         "WP_USERNAME": "your_username",
