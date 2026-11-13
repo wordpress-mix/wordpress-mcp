@@ -75,7 +75,9 @@ test('Đăng ký đầy đủ toàn bộ các MCP Tools WordPress', () => {
     'wp_media_list',
     'wp_media_get',
     'wp_media_upload',
+    'wp_media_update',
     'wp_media_delete',
+    'wp_media_list_missing_alt',
     // Taxonomies
     'wp_category_list',
     'wp_category_get',

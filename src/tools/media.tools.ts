@@ -144,4 +144,101 @@ export function registerMediaTools(server: McpServer): void {
       };
     }
   );
+
+  // 5. Cập nhật thông tin tệp media (alt_text, title, caption, description, post)
+  server.tool(
+    'wp_media_update',
+    'Cập nhật thông tin tệp media theo ID (alt_text, title, caption, description, post) để bổ sung mô tả/SEO.',
+    {
+      id: z.number().int().positive().describe('ID tệp media cần cập nhật'),
+      alt_text: z.string().optional().describe('Mô tả thay thế (Alt Text) tối ưu cho SEO/accessibility'),
+      title: z.string().optional().describe('Tiêu đề tệp media'),
+      caption: z.string().optional().describe('Chú thích hiển thị dưới ảnh'),
+      description: z.string().optional().describe('Mô tả chi tiết tệp media'),
+      post: z.number().int().positive().optional().describe('ID bài viết cần đính kèm tệp media'),
+    },
+    async ({ id, alt_text, title, caption, description, post }) => {
+      const updatePayload: Record<string, string | number> = {};
+      if (alt_text !== undefined) updatePayload.alt_text = alt_text;
+      if (title !== undefined) updatePayload.title = title;
+      if (caption !== undefined) updatePayload.caption = caption;
+      if (description !== undefined) updatePayload.description = description;
+      if (post !== undefined) updatePayload.post = post;
+
+      if (Object.keys(updatePayload).length === 0) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  status: 'error',
+                  error_code: 'MISSING_UPDATE_FIELDS',
+                  message: 'Cần cung cấp ít nhất một trường cần cập nhật (alt_text, title, caption, description hoặc post).',
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      }
+
+      const res = await apiClient.post<WpMedia>(`media/${id}`, updatePayload);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
+      };
+    }
+  );
+
+  // 6. Liệt kê các tệp media thiếu alt_text (mô tả thay thế)
+  server.tool(
+    'wp_media_list_missing_alt',
+    'Liệt kê các tệp media (mặc định ảnh) thiếu alt_text/mô tả thay thế, để kiểm tra và bổ sung SEO/accessibility.',
+    {
+      media_type: z.enum(['image', 'video', 'audio', 'application']).optional().default('image').describe('Loại tệp media cần kiểm tra (mặc định image)'),
+      mime_type: z.string().optional().describe('MIME type cụ thể (ví dụ: image/webp)'),
+      per_page: z.number().int().positive().max(100).optional().default(100).describe('Số lượng tệp trên mỗi trang (mặc định 100, tối đa 100)'),
+      page: z.number().int().positive().optional().describe('Số trang cần lấy'),
+    },
+    async ({ media_type, mime_type, per_page, page }) => {
+      const res = await apiClient.get<WpMedia[]>('media', {
+        media_type,
+        mime_type,
+        per_page,
+        page,
+      });
+
+      if (res.status === 'error') {
+        return {
+          content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
+        };
+      }
+
+      const scanned = res.data || [];
+      const missing = scanned.filter((m) => !m.alt_text || m.alt_text.trim() === '');
+
+      const payload = {
+        status: 'success',
+        media_type,
+        page: page || 1,
+        per_page,
+        total: res.total,
+        total_pages: res.totalPages,
+        scanned_count: scanned.length,
+        missing_alt_count: missing.length,
+        items: missing.map((m) => ({
+          id: m.id,
+          title: m.title?.rendered,
+          source_url: m.source_url,
+          alt_text: m.alt_text,
+          suggested_alt: m.title?.rendered || '',
+        })),
+      };
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
+      };
+    }
+  );
 }

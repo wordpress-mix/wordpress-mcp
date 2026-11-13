@@ -24,7 +24,9 @@ Model Context Protocol (MCP) server xây dựng bằng **Node.js** & **TypeScrip
 - `wp_media_list`: Xem danh sách hình ảnh, video và tệp đính kèm có phân trang.
 - `wp_media_get`: Chi tiết tệp media, URL gốc và các kích cỡ ảnh đã sinh tự động.
 - `wp_media_upload`: Tải file ảnh/media lên WordPress kèm `alt_text`, `title`, `caption`, và gắn trực tiếp vào `post_id`.
+- `wp_media_update`: Cập nhật thông tin tệp media theo ID (bổ sung `alt_text`, `title`, `caption`, `description`, `post`).
 - `wp_media_delete`: Xóa tệp media khỏi thư viện WordPress.
+- `wp_media_list_missing_alt`: Liệt kê các tệp media (mặc định ảnh) còn thiếu alt_text để kiểm tra và bổ sung SEO/accessibility.
 
 ### 4. Quản lý Phân loại (Taxonomies: Categories & Tags)
 - `wp_category_list`: Danh sách chuyên mục (categories), hỗ trợ phân trang và tìm kiếm.
