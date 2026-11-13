@@ -6,7 +6,6 @@ import test from 'node:test';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WordPressApiClient } from '../src/client.js';
 import { config } from '../src/config.js';
-import { registerCommentTools } from '../src/tools/comment.tools.js';
 import { registerMediaTools } from '../src/tools/media.tools.js';
 import { registerPageTools } from '../src/tools/page.tools.js';
 import { registerPostTools } from '../src/tools/post.tools.js';
@@ -50,7 +49,6 @@ test('Đăng ký đầy đủ toàn bộ các MCP Tools WordPress', () => {
   registerPageTools(server);
   registerMediaTools(server);
   registerTaxonomyTools(server);
-  registerCommentTools(server);
   registerSystemTools(server);
   registerRankMathTools(server);
 
@@ -88,12 +86,6 @@ test('Đăng ký đầy đủ toàn bộ các MCP Tools WordPress', () => {
     'wp_tag_get',
     'wp_tag_create',
     'wp_tag_delete',
-    // Comments
-    'wp_comment_list',
-    'wp_comment_get',
-    'wp_comment_create',
-    'wp_comment_update',
-    'wp_comment_delete',
     // System & User
     'wp_user_me',
     'wp_system_info',
@@ -121,7 +113,6 @@ test('Validation schema của các tools phản ánh đúng quy tắc WordPress 
   registerPageTools(server);
   registerMediaTools(server);
   registerTaxonomyTools(server);
-  registerCommentTools(server);
   registerSystemTools(server);
   registerRankMathTools(server);
 
@@ -157,26 +148,7 @@ test('Validation schema của các tools phản ánh đúng quy tắc WordPress 
   );
   assert.equal(tools.wp_category_create.inputSchema.safeParse({ name: '' }).success, false, 'Tên chuyên mục không được trống');
 
-  // 3. wp_comment_create
-  assert.equal(
-    tools.wp_comment_create.inputSchema.safeParse({
-      post: 123,
-      content: 'Bài viết rất hay',
-      author_email: 'test@example.com',
-    }).success,
-    true
-  );
-  assert.equal(
-    tools.wp_comment_create.inputSchema.safeParse({
-      post: 123,
-      content: 'Bình luận',
-      author_email: 'not-an-email',
-    }).success,
-    false,
-    'Email bình luận phải đúng định dạng'
-  );
-
-  // 4. wp_rankmath_set_keywords (1 chính, tối đa 4 phụ)
+  // 3. wp_rankmath_set_keywords (1 chính, tối đa 4 phụ)
   assert.equal(
     tools.wp_rankmath_set_keywords.inputSchema.safeParse({
       post_id: 1,

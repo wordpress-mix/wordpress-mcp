@@ -110,20 +110,6 @@ export interface WpTag {
   taxonomy: 'post_tag';
 }
 
-export interface WpComment {
-  id: number;
-  post: number;
-  parent: number;
-  author: number;
-  author_name: string;
-  author_url: string;
-  date: string;
-  content: WpRendered;
-  link: string;
-  status: 'approved' | 'hold' | 'spam' | 'trash';
-  type: string;
-}
-
 export interface WpUser {
   id: number;
   name: string;

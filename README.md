@@ -36,18 +36,11 @@ Model Context Protocol (MCP) server xây dựng bằng **Node.js** & **TypeScrip
 - `wp_tag_get`: Chi tiết thẻ bài viết.
 - `wp_tag_create`: Tạo thẻ bài viết mới.
 
-### 5. Quản lý Bình luận (Comments)
-- `wp_comment_list`: Lấy danh sách bình luận (lọc theo bài viết, trạng thái `hold`/`approved`/`spam`/`trash`).
-- `wp_comment_get`: Lấy chi tiết bình luận.
-- `wp_comment_create`: Tạo bình luận mới cho bài viết.
-- `wp_comment_update`: Cập nhật nội dung hoặc trạng thái duyệt bình luận.
-- `wp_comment_delete`: Xóa bình luận.
-
-### 6. Hệ Thống & Tài Khoản (System & User)
+### 5. Hệ Thống & Tài Khoản (System & User)
 - `wp_user_me`: Lấy thông tin tài khoản người dùng đang kết nối, quyền hạn và vai trò (roles, capabilities).
 - `wp_system_info`: Kiểm tra trạng thái kết nối WordPress REST API, URL website, phiên bản WordPress và múi giờ hệ thống.
 
-### 7. Tối Ưu SEO với RankMath (RankMath SEO)
+### 6. Tối Ưu SEO với RankMath (RankMath SEO)
 - `wp_rankmath_get_seo`: Lấy chi tiết siêu dữ liệu SEO của bài viết hoặc trang (tiêu đề SEO, mô tả SEO, từ khóa chính và danh sách từ khóa phụ).
 - `wp_rankmath_update_seo`: Cập nhật toàn diện siêu dữ liệu SEO (tiêu đề, mô tả, từ khóa 1 chính + tối đa 4 phụ, canonical URL).
 - `wp_rankmath_set_title`: Cập nhật riêng tiêu đề SEO RankMath (`rank_math_title`, khuyến nghị 50-60 ký tự).
@@ -169,7 +162,6 @@ Nếu bạn đang phát triển hoặc muốn chạy trực tiếp file bundle s
 │       ├── page.tools.ts     # Các công cụ quản lý Trang tĩnh
 │       ├── media.tools.ts    # Các công cụ quản lý Media
 │       ├── taxonomy.tools.ts # Các công cụ quản lý Categories & Tags
-│       ├── comment.tools.ts  # Các công cụ quản lý Bình luận
 │       ├── system.tools.ts   # Công cụ kiểm tra hệ thống và tài khoản
 │       └── rankmath.tools.ts # Các công cụ tối ưu RankMath SEO (tiêu đề, mô tả, từ khóa)
 ├── test/
