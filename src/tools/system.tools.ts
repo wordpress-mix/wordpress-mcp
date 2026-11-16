@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { apiClient } from '../client.js';
 import { config } from '../config.js';
 import type { WpSystemInfo, WpUser } from '../types.js';
+import { createFilteredResponse, createCustomResponse } from '../lib/response-filter.js';
 
 export function registerSystemTools(server: McpServer): void {
   // 1. Thông tin tài khoản người dùng hiện tại
@@ -17,9 +18,7 @@ export function registerSystemTools(server: McpServer): void {
     },
     async ({ context }) => {
       const res = await apiClient.get<WpUser>('users/me', { context: context || 'edit' });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'user');
     }
   );
 
@@ -34,9 +33,10 @@ export function registerSystemTools(server: McpServer): void {
 
       if (config.wpUsername && config.wpAppPassword) {
         const userRes = await apiClient.get<WpUser>('users/me');
-        if (userRes.status === 'success') {
+        const obj = userRes as unknown as { status?: string; data?: WpUser };
+        if (obj.status === 'success' && obj.data) {
           authenticated = true;
-          currentUser = `${userRes.data.name} (ID: ${userRes.data.id})`;
+          currentUser = `${obj.data.name} (ID: ${obj.data.id})`;
         }
       }
 
@@ -49,21 +49,10 @@ export function registerSystemTools(server: McpServer): void {
         currentUser,
       };
 
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              {
-                status: 'success',
-                data: info,
-              },
-              null,
-              2
-            ),
-          },
-        ],
-      };
+      return createCustomResponse({
+        status: 'success',
+        data: info,
+      });
     }
   );
 }

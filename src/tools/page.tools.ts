@@ -5,6 +5,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { apiClient } from '../client.js';
 import type { WpPage } from '../types.js';
+import { createFilteredResponse } from '../lib/response-filter.js';
 
 export function registerPageTools(server: McpServer): void {
   // 1. Danh sách trang
@@ -20,9 +21,7 @@ export function registerPageTools(server: McpServer): void {
     },
     async (params) => {
       const res = await apiClient.get<WpPage[]>('pages', params);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'page');
     }
   );
 
@@ -36,9 +35,7 @@ export function registerPageTools(server: McpServer): void {
     },
     async ({ id, context }) => {
       const res = await apiClient.get<WpPage>(`pages/${id}`, { context });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'page');
     }
   );
 
@@ -65,9 +62,7 @@ export function registerPageTools(server: McpServer): void {
       };
 
       const res = await apiClient.post<WpPage>('pages', payload);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'page');
     }
   );
 
@@ -86,9 +81,7 @@ export function registerPageTools(server: McpServer): void {
     },
     async ({ id, ...payload }) => {
       const res = await apiClient.post<WpPage>(`pages/${id}`, payload);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'page');
     }
   );
 
@@ -102,9 +95,7 @@ export function registerPageTools(server: McpServer): void {
     },
     async ({ id, force }) => {
       const res = await apiClient.delete<WpPage>(`pages/${id}`, { force });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'page');
     }
   );
 }

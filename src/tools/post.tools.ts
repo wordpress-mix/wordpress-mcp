@@ -5,6 +5,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { apiClient } from '../client.js';
 import type { WpPost } from '../types.js';
+import { createFilteredResponse, createCustomResponse } from '../lib/response-filter.js';
 
 /**
  * Cấu trúc một entry trong meta `_vnhte_image_prompts`:
@@ -52,9 +53,7 @@ export function registerPostTools(server: McpServer): void {
       }
 
       const res = await apiClient.get<WpPost[]>('posts', queryParams);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'post');
     }
   );
 
@@ -68,9 +67,7 @@ export function registerPostTools(server: McpServer): void {
     },
     async ({ id, context }) => {
       const res = await apiClient.get<WpPost>(`posts/${id}`, { context });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'post');
     }
   );
 
@@ -101,9 +98,7 @@ export function registerPostTools(server: McpServer): void {
       };
 
       const res = await apiClient.post<WpPost>('posts', payload);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'post');
     }
   );
 
@@ -124,9 +119,7 @@ export function registerPostTools(server: McpServer): void {
     },
     async ({ id, ...payload }) => {
       const res = await apiClient.post<WpPost>(`posts/${id}`, payload);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'post');
     }
   );
 
@@ -140,9 +133,7 @@ export function registerPostTools(server: McpServer): void {
     },
     async ({ id, force }) => {
       const res = await apiClient.delete<WpPost>(`posts/${id}`, { force });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'post');
     }
   );
 
@@ -155,13 +146,12 @@ export function registerPostTools(server: McpServer): void {
     },
     async ({ id }) => {
       const res = await apiClient.get<WpPost>(`posts/${id}`, { context: 'edit' });
-      if (res.status === 'error') {
-        return { content: [{ type: 'text', text: JSON.stringify(res, null, 2) }] };
+      const obj = res as unknown as { status?: string; data?: WpPost };
+      if (obj.status === 'error') {
+        return createCustomResponse(res);
       }
-      const prompts = ((res.data.meta?._vnhte_image_prompts as unknown as Array<{ id: string; prompt: string; alt?: string; order?: number }>) || []).sort((a, b) => (a.order || 0) - (b.order || 0));
-      return {
-        content: [{ type: 'text', text: JSON.stringify({ status: 'success', post_id: id, count: prompts.length, prompts }, null, 2) }],
-      };
+      const prompts = ((obj.data?.meta?._vnhte_image_prompts as unknown as Array<{ id: string; prompt: string; alt?: string; order?: number }>) || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+      return createCustomResponse({ status: 'success', post_id: id, count: prompts.length, prompts });
     }
   );
 
@@ -177,7 +167,7 @@ export function registerPostTools(server: McpServer): void {
       const res = await apiClient.post<WpPost>(`posts/${id}`, {
         meta: { _vnhte_image_prompts: prompts },
       });
-      return { content: [{ type: 'text', text: JSON.stringify(res, null, 2) }] };
+      return createFilteredResponse(res, 'post');
     }
   );
 
@@ -194,22 +184,18 @@ export function registerPostTools(server: McpServer): void {
     },
     async ({ id, prompt_id, prompt, alt, order }) => {
       const getRes = await apiClient.get<WpPost>(`posts/${id}`, { context: 'edit' });
-      if (getRes.status === 'error') {
-        return { content: [{ type: 'text', text: JSON.stringify(getRes, null, 2) }] };
+      const getObj = getRes as unknown as { status?: string; data?: WpPost };
+      if (getObj.status === 'error') {
+        return createCustomResponse(getRes);
       }
-      const current = (getRes.data.meta?._vnhte_image_prompts as unknown as Array<{ id: string; prompt: string; alt?: string; order?: number }>) || [];
+      const current = (getObj.data?.meta?._vnhte_image_prompts as unknown as Array<{ id: string; prompt: string; alt?: string; order?: number }>) || [];
       const exists = current.some((p) => p.id === prompt_id);
       if (exists) {
-        return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify({
-              status: 'error',
-              error_code: 'DUPLICATE_PROMPT_ID',
-              message: `Prompt với id "${prompt_id}" đã tồn tại trong bài viết #${id}.`,
-            }, null, 2),
-          }],
-        };
+        return createCustomResponse({
+          status: 'error',
+          error_code: 'DUPLICATE_PROMPT_ID',
+          message: `Prompt với id "${prompt_id}" đã tồn tại trong bài viết #${id}.`,
+        });
       }
       const newItem: { id: string; prompt: string; alt: string; order?: number } = {
         id: prompt_id,
@@ -221,7 +207,7 @@ export function registerPostTools(server: McpServer): void {
       const res = await apiClient.post<WpPost>(`posts/${id}`, {
         meta: { _vnhte_image_prompts: updated },
       });
-      return { content: [{ type: 'text', text: JSON.stringify(res, null, 2) }] };
+      return createFilteredResponse(res, 'post');
     }
   );
 }

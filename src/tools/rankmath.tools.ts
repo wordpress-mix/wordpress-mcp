@@ -6,6 +6,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { apiClient } from '../client.js';
 import type { ApiResponse, RankMathSeoData, WpPost } from '../types.js';
+import { createFilteredResponse, createCustomResponse } from '../lib/response-filter.js';
 
 function parseFocusKeywords(raw: string = ''): { primaryKeyword: string; secondaryKeywords: string[] } {
   const parts = raw
@@ -35,13 +36,12 @@ export function registerRankMathTools(server: McpServer): void {
       const endpoint = post_type === 'page' ? `pages/${post_id}` : `posts/${post_id}`;
       const res = await apiClient.get<WpPost>(endpoint, { context: 'edit' });
 
-      if (res.status === 'error') {
-        return {
-          content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-        };
+      const obj = res as unknown as ApiResponse<WpPost>;
+      if (obj.status === 'error') {
+        return createCustomResponse(res);
       }
 
-      const meta = (res.data.meta || {}) as Record<string, unknown>;
+      const meta = (obj.data?.meta || {}) as Record<string, unknown>;
       const rawKeyword = typeof meta.rank_math_focus_keyword === 'string' ? meta.rank_math_focus_keyword : '';
       const { primaryKeyword, secondaryKeywords } = parseFocusKeywords(rawKeyword);
 
@@ -58,21 +58,10 @@ export function registerRankMathTools(server: McpServer): void {
         metaRaw: meta,
       };
 
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              {
-                status: 'success',
-                data: seoData,
-              },
-              null,
-              2
-            ),
-          },
-        ],
-      };
+      return createCustomResponse({
+        status: 'success',
+        data: seoData,
+      });
     }
   );
 
@@ -108,8 +97,9 @@ export function registerRankMathTools(server: McpServer): void {
         // Nếu chỉ truyền từ khóa phụ, đọc từ khóa chính hiện tại để gộp lại
         const endpointGet = post_type === 'page' ? `pages/${post_id}` : `posts/${post_id}`;
         const currentRes = await apiClient.get<WpPost>(endpointGet, { context: 'edit' });
-        if (currentRes.status === 'success') {
-          const currentMeta = (currentRes.data.meta || {}) as Record<string, unknown>;
+        const currentObj = currentRes as unknown as ApiResponse<WpPost>;
+        if (currentObj.status === 'success') {
+          const currentMeta = (currentObj.data?.meta || {}) as Record<string, unknown>;
           const currentKeyword = typeof currentMeta.rank_math_focus_keyword === 'string' ? currentMeta.rank_math_focus_keyword : '';
           const { primaryKeyword: curPrimary } = parseFocusKeywords(currentKeyword);
           metaToUpdate.rank_math_focus_keyword = buildFocusKeywordString(curPrimary || secondary_keywords[0], secondary_keywords);
@@ -128,40 +118,30 @@ export function registerRankMathTools(server: McpServer): void {
         })
         .catch(() => null);
 
-      if (res.status === 'error') {
-        return {
-          content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-        };
+      const resObj = res as unknown as ApiResponse<WpPost>;
+      if (resObj.status === 'error') {
+        return createCustomResponse(res);
       }
 
-      const updatedMeta = (res.data.meta || {}) as Record<string, unknown>;
-      const rawKeyword = typeof updatedMeta.rank_math_focus_keyword === 'string' ? updatedMeta.rank_math_focus_keyword : (metaToUpdate.rank_math_focus_keyword as string) || '';
+      const updatedMeta = (resObj.data?.meta || {}) as Record<string, unknown>;
+      const rawKeyword = typeof updatedMeta.rank_math_focus_keyword === 'string'
+        ? updatedMeta.rank_math_focus_keyword
+        : (metaToUpdate.rank_math_focus_keyword as string) || '';
       const { primaryKeyword, secondaryKeywords: secKw } = parseFocusKeywords(rawKeyword);
 
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              {
-                status: 'success',
-                message: `Đã cập nhật thành công siêu dữ liệu SEO RankMath cho ${post_type} #${post_id}`,
-                data: {
-                  postId: post_id,
-                  postType: post_type,
-                  title: updatedMeta.rank_math_title || metaToUpdate.rank_math_title,
-                  description: updatedMeta.rank_math_description || metaToUpdate.rank_math_description,
-                  primaryKeyword,
-                  secondaryKeywords: secKw,
-                  focusKeywordsRaw: rawKeyword,
-                },
-              },
-              null,
-              2
-            ),
-          },
-        ],
-      };
+      return createCustomResponse({
+        status: 'success',
+        message: `Đã cập nhật thành công siêu dữ liệu SEO RankMath cho ${post_type} #${post_id}`,
+        data: {
+          postId: post_id,
+          postType: post_type,
+          title: updatedMeta.rank_math_title || metaToUpdate.rank_math_title,
+          description: updatedMeta.rank_math_description || metaToUpdate.rank_math_description,
+          primaryKeyword,
+          secondaryKeywords: secKw,
+          focusKeywordsRaw: rawKeyword,
+        },
+      });
     }
   );
 
@@ -188,9 +168,7 @@ export function registerRankMathTools(server: McpServer): void {
         })
         .catch(() => null);
 
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'rankmath');
     }
   );
 
@@ -217,9 +195,7 @@ export function registerRankMathTools(server: McpServer): void {
         })
         .catch(() => null);
 
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'rankmath');
     }
   );
 
@@ -249,34 +225,22 @@ export function registerRankMathTools(server: McpServer): void {
         })
         .catch(() => null);
 
-      if (res.status === 'error') {
-        return {
-          content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-        };
+      const resObj = res as unknown as ApiResponse<WpPost>;
+      if (resObj.status === 'error') {
+        return createCustomResponse(res);
       }
 
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              {
-                status: 'success',
-                message: `Đã cập nhật bộ từ khóa RankMath SEO (1 chính + ${secondary_keywords.length} phụ) cho ${post_type} #${post_id}`,
-                data: {
-                  postId: post_id,
-                  postType: post_type,
-                  primaryKeyword: primary_keyword.trim(),
-                  secondaryKeywords: secondary_keywords.map((k) => k.trim()),
-                  focusKeywordsRaw: focusKeywordsString,
-                },
-              },
-              null,
-              2
-            ),
-          },
-        ],
-      };
+      return createCustomResponse({
+        status: 'success',
+        message: `Đã cập nhật bộ từ khóa RankMath SEO (1 chính + ${secondary_keywords.length} phụ) cho ${post_type} #${post_id}`,
+        data: {
+          postId: post_id,
+          postType: post_type,
+          primaryKeyword: primary_keyword.trim(),
+          secondaryKeywords: secondary_keywords.map((k) => k.trim()),
+          focusKeywordsRaw: focusKeywordsString,
+        },
+      });
     }
   );
 }

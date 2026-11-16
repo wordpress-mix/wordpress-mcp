@@ -7,6 +7,7 @@ import * as path from 'node:path';
 import { z } from 'zod';
 import { apiClient } from '../client.js';
 import type { WpMedia } from '../types.js';
+import { createFilteredResponse, createCustomResponse } from '../lib/response-filter.js';
 
 function getMimeType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
@@ -40,9 +41,7 @@ export function registerMediaTools(server: McpServer): void {
     },
     async (params) => {
       const res = await apiClient.get<WpMedia[]>('media', params);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'media');
     }
   );
 
@@ -56,9 +55,7 @@ export function registerMediaTools(server: McpServer): void {
     },
     async ({ id, context }) => {
       const res = await apiClient.get<WpMedia>(`media/${id}`, { context });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'media');
     }
   );
 
@@ -84,13 +81,11 @@ export function registerMediaTools(server: McpServer): void {
           post,
         });
 
-        if (uploadRes.status === 'error') {
-          return {
-            content: [{ type: 'text', text: JSON.stringify(uploadRes, null, 2) }],
-          };
+        if ((uploadRes as unknown as { status?: string }).status === 'error') {
+          return createCustomResponse(uploadRes);
         }
 
-        const mediaId = uploadRes.data.id;
+        const mediaId = (uploadRes as unknown as { data: WpMedia }).data.id;
         const updatePayload: Record<string, string | number> = {};
         if (title) updatePayload.title = title;
         if (alt_text) updatePayload.alt_text = alt_text;
@@ -99,32 +94,17 @@ export function registerMediaTools(server: McpServer): void {
 
         if (Object.keys(updatePayload).length > 0) {
           const updated = await apiClient.post<WpMedia>(`media/${mediaId}`, updatePayload);
-          return {
-            content: [{ type: 'text', text: JSON.stringify(updated, null, 2) }],
-          };
+          return createFilteredResponse(updated, 'media');
         }
 
-        return {
-          content: [{ type: 'text', text: JSON.stringify(uploadRes, null, 2) }],
-        };
+        return createFilteredResponse(uploadRes, 'media');
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Lỗi đọc tệp cục bộ';
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  status: 'error',
-                  error_code: 'LOCAL_FILE_READ_ERROR',
-                  message: `Không thể đọc tệp ${file_path}: ${msg}`,
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        return createCustomResponse({
+          status: 'error',
+          error_code: 'LOCAL_FILE_READ_ERROR',
+          message: `Không thể đọc tệp ${file_path}: ${msg}`,
+        });
       }
     }
   );
@@ -139,9 +119,7 @@ export function registerMediaTools(server: McpServer): void {
     },
     async ({ id, force }) => {
       const res = await apiClient.delete<WpMedia>(`media/${id}`, { force });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'media');
     }
   );
 
@@ -166,28 +144,15 @@ export function registerMediaTools(server: McpServer): void {
       if (post !== undefined) updatePayload.post = post;
 
       if (Object.keys(updatePayload).length === 0) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  status: 'error',
-                  error_code: 'MISSING_UPDATE_FIELDS',
-                  message: 'Cần cung cấp ít nhất một trường cần cập nhật (alt_text, title, caption, description hoặc post).',
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        return createCustomResponse({
+          status: 'error',
+          error_code: 'MISSING_UPDATE_FIELDS',
+          message: 'Cần cung cấp ít nhất một trường cần cập nhật (alt_text, title, caption, description hoặc post).',
+        });
       }
 
       const res = await apiClient.post<WpMedia>(`media/${id}`, updatePayload);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-      };
+      return createFilteredResponse(res, 'media');
     }
   );
 
@@ -209,13 +174,12 @@ export function registerMediaTools(server: McpServer): void {
         page,
       });
 
-      if (res.status === 'error') {
-        return {
-          content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
-        };
+      if ((res as unknown as { status?: string }).status === 'error') {
+        return createCustomResponse(res);
       }
 
-      const scanned = res.data || [];
+      const obj = res as unknown as { data: WpMedia[]; total?: number; totalPages?: number };
+      const scanned = obj.data || [];
       const missing = scanned.filter((m) => !m.alt_text || m.alt_text.trim() === '');
 
       const payload = {
@@ -223,8 +187,8 @@ export function registerMediaTools(server: McpServer): void {
         media_type,
         page: page || 1,
         per_page,
-        total: res.total,
-        total_pages: res.totalPages,
+        total: obj.total,
+        total_pages: obj.totalPages,
         scanned_count: scanned.length,
         missing_alt_count: missing.length,
         items: missing.map((m) => ({
@@ -236,9 +200,7 @@ export function registerMediaTools(server: McpServer): void {
         })),
       };
 
-      return {
-        content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
-      };
+      return createCustomResponse(payload);
     }
   );
 }
