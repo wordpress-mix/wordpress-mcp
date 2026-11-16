@@ -6,6 +6,17 @@ import { z } from 'zod';
 import { apiClient } from '../client.js';
 import type { WpPost } from '../types.js';
 
+/**
+ * Cấu trúc một entry trong meta `_vnhte_image_prompts`:
+ * { id: string, prompt: string, alt: string, order?: number }
+ */
+const ImagePromptSchema = z.object({
+  id: z.string().min(1).describe('ID định danh của prompt (chuỗi, ví dụ "1234")'),
+  prompt: z.string().min(1).describe('Prompt tạo ảnh (ví dụ: "Cinematic shot of Linux server room, neon cyan lights, photorealistic 8k")'),
+  alt: z.string().optional().describe('Mô tả thay thế (Alt Text) tương ứng với ảnh tạo ra'),
+  order: z.number().int().optional().describe('Thứ tự sắp xếp (số nguyên, tùy chọn; dùng để sort hiển thị)'),
+});
+
 export function registerPostTools(server: McpServer): void {
   // 1. Danh sách bài viết
   server.tool(
@@ -132,6 +143,85 @@ export function registerPostTools(server: McpServer): void {
       return {
         content: [{ type: 'text', text: JSON.stringify(res, null, 2) }],
       };
+    }
+  );
+
+  // 6. Lấy danh sách image prompts của bài viết (meta _vnhte_image_prompts)
+  server.tool(
+    'wp_post_meta_get_image_prompts',
+    'Lấy danh sách image prompts từ meta `_vnhte_image_prompts` của bài viết (mảng object: id, prompt, alt). Đây là metabox custom meta (không phải trường nội dung bài viết).',
+    {
+      id: z.number().int().positive().describe('ID của bài viết'),
+    },
+    async ({ id }) => {
+      const res = await apiClient.get<WpPost>(`posts/${id}`, { context: 'edit' });
+      if (res.status === 'error') {
+        return { content: [{ type: 'text', text: JSON.stringify(res, null, 2) }] };
+      }
+      const prompts = ((res.data.meta?._vnhte_image_prompts as unknown as Array<{ id: string; prompt: string; alt?: string; order?: number }>) || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+      return {
+        content: [{ type: 'text', text: JSON.stringify({ status: 'success', post_id: id, count: prompts.length, prompts }, null, 2) }],
+      };
+    }
+  );
+
+  // 7. Cập nhật (thêm/sửa/xóa) image prompts của bài viết
+  server.tool(
+    'wp_post_meta_update_image_prompts',
+    'Cập nhật meta `_vnhte_image_prompts` (metabox custom meta) của bài viết - ghi đè toàn bộ mảng. Truyền mảng rỗng [] để xóa hết.',
+    {
+      id: z.number().int().positive().describe('ID của bài viết cần cập nhật'),
+      prompts: z.array(ImagePromptSchema).describe('Danh sách image prompts mới (mỗi item: id, prompt, alt?)'),
+    },
+    async ({ id, prompts }) => {
+      const res = await apiClient.post<WpPost>(`posts/${id}`, {
+        meta: { _vnhte_image_prompts: prompts },
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(res, null, 2) }] };
+    }
+  );
+
+  // 8. Thêm một image prompt vào bài viết (append, không ghi đè)
+  server.tool(
+    'wp_post_meta_add_image_prompt',
+    'Thêm một image prompt vào meta `_vnhte_image_prompts` (metabox custom meta) của bài viết - append vào mảng hiện tại.',
+    {
+      id: z.number().int().positive().describe('ID của bài viết'),
+      prompt_id: z.string().min(1).describe('ID định danh của prompt mới (chuỗi, ví dụ "1234")'),
+      prompt: z.string().min(1).describe('Prompt tạo ảnh (ví dụ: "Cinematic shot of Linux server room, neon cyan lights, photorealistic 8k")'),
+      alt: z.string().optional().describe('Mô tả thay thế (Alt Text) tương ứng với ảnh tạo ra'),
+      order: z.number().int().optional().describe('Thứ tự sắp xếp (số nguyên, tùy chọn)'),
+    },
+    async ({ id, prompt_id, prompt, alt, order }) => {
+      const getRes = await apiClient.get<WpPost>(`posts/${id}`, { context: 'edit' });
+      if (getRes.status === 'error') {
+        return { content: [{ type: 'text', text: JSON.stringify(getRes, null, 2) }] };
+      }
+      const current = (getRes.data.meta?._vnhte_image_prompts as unknown as Array<{ id: string; prompt: string; alt?: string; order?: number }>) || [];
+      const exists = current.some((p) => p.id === prompt_id);
+      if (exists) {
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({
+              status: 'error',
+              error_code: 'DUPLICATE_PROMPT_ID',
+              message: `Prompt với id "${prompt_id}" đã tồn tại trong bài viết #${id}.`,
+            }, null, 2),
+          }],
+        };
+      }
+      const newItem: { id: string; prompt: string; alt: string; order?: number } = {
+        id: prompt_id,
+        prompt,
+        alt: alt || '',
+      };
+      if (order !== undefined) newItem.order = order;
+      const updated = [...current, newItem];
+      const res = await apiClient.post<WpPost>(`posts/${id}`, {
+        meta: { _vnhte_image_prompts: updated },
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(res, null, 2) }] };
     }
   );
 }

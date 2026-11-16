@@ -63,6 +63,9 @@ test('Đăng ký đầy đủ toàn bộ các MCP Tools WordPress', () => {
     'wp_post_create',
     'wp_post_update',
     'wp_post_delete',
+    'wp_post_meta_get_image_prompts',
+    'wp_post_meta_update_image_prompts',
+    'wp_post_meta_add_image_prompt',
     // Pages
     'wp_page_list',
     'wp_page_get',
