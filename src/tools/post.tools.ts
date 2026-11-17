@@ -33,6 +33,8 @@ export function registerPostTools(server: McpServer): void {
       page: z.number().int().positive().optional().describe('Số trang cần lấy'),
       order: z.enum(['asc', 'desc']).optional().describe('Thứ tự sắp xếp (mặc định desc)'),
       orderby: z.enum(['date', 'id', 'title', 'slug', 'modified']).optional().describe('Trường dùng để sắp xếp (mặc định date)'),
+      fields: z.array(z.string()).optional().describe('Danh sách các trường cần lấy, hỗ trợ đường dẫn lồng nhau và chế độ render (ví dụ: ["id", "title.rendered", "content.rendered:full", "author"]). Thêm suffix ":minimal" hoặc ":full" để chọn chế độ render cho từng trường (mặc định theo render_mode). Nếu truyền, chỉ trả về các trường này (giống GraphQL). Bỏ trống để trả về mặc định.'),
+      render_mode: z.enum(['minimal', 'full']).optional().describe('Chế độ render mặc định cho các trường: minimal (ẩn raw/protected và các trường hệ thống) hoặc full (giữ nguyên raw/protected). Mặc định minimal.'),
     },
     async (params) => {
       const queryParams: Record<string, string | number | boolean | undefined> = {
@@ -53,7 +55,7 @@ export function registerPostTools(server: McpServer): void {
       }
 
       const res = await apiClient.get<WpPost[]>('posts', queryParams);
-      return createFilteredResponse(res, 'post');
+      return createFilteredResponse(res, 'post', params.render_mode || 'minimal', params.fields);
     }
   );
 
@@ -64,10 +66,12 @@ export function registerPostTools(server: McpServer): void {
     {
       id: z.number().int().positive().describe('ID của bài viết'),
       context: z.enum(['view', 'edit']).optional().describe('Ngữ cảnh lấy dữ liệu (edit để lấy raw Gutenberg blocks, view để lấy HTML đã render)'),
+      fields: z.array(z.string()).optional().describe('Danh sách các trường cần lấy, hỗ trợ đường dẫn lồng nhau và chế độ render (ví dụ: ["id", "title.rendered", "content.rendered:full", "author"]). Thêm suffix ":minimal" hoặc ":full" để chọn chế độ render cho từng trường (mặc định theo render_mode). Nếu truyền, chỉ trả về các trường này (giống GraphQL). Bỏ trống để trả về mặc định.'),
+      render_mode: z.enum(['minimal', 'full']).optional().describe('Chế độ render mặc định cho các trường: minimal (ẩn raw/protected và các trường hệ thống) hoặc full (giữ nguyên raw/protected). Mặc định minimal.'),
     },
-    async ({ id, context }) => {
+    async ({ id, context, fields, render_mode }) => {
       const res = await apiClient.get<WpPost>(`posts/${id}`, { context });
-      return createFilteredResponse(res, 'post');
+      return createFilteredResponse(res, 'post', render_mode || 'minimal', fields);
     }
   );
 

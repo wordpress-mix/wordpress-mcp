@@ -17,10 +17,18 @@ export function registerTaxonomyTools(server: McpServer): void {
       parent: z.number().int().optional().describe('ID chuyên mục cha để lọc'),
       per_page: z.number().int().positive().max(100).optional().describe('Số lượng chuyên mục trên mỗi trang (mặc định 10, tối đa 100)'),
       page: z.number().int().positive().optional().describe('Số trang cần lấy'),
+      fields: z.array(z.string()).optional().describe('Danh sách các trường cần lấy, hỗ trợ đường dẫn lồng nhau và chế độ render (ví dụ: ["id", "name", "slug", "count"]). Thêm suffix ":minimal" hoặc ":full" để chọn chế độ render cho từng trường (mặc định theo render_mode). Nếu truyền, chỉ trả về các trường này (giống GraphQL). Bỏ trống để trả về mặc định.'),
+      render_mode: z.enum(['minimal', 'full']).optional().describe('Chế độ render mặc định cho các trường: minimal (ẩn raw/protected và các trường hệ thống) hoặc full (giữ nguyên raw/protected). Mặc định minimal.'),
     },
     async (params) => {
-      const res = await apiClient.get<WpCategory[]>('categories', params);
-      return createFilteredResponse(res, 'category');
+      const queryParams: Record<string, string | number | boolean | undefined> = {
+        search: params.search,
+        parent: params.parent,
+        per_page: params.per_page,
+        page: params.page,
+      };
+      const res = await apiClient.get<WpCategory[]>('categories', queryParams);
+      return createFilteredResponse(res, 'category', params.render_mode || 'minimal', params.fields);
     }
   );
 
@@ -30,10 +38,12 @@ export function registerTaxonomyTools(server: McpServer): void {
     'Lấy thông tin chi tiết một chuyên mục theo ID.',
     {
       id: z.number().int().positive().describe('ID của chuyên mục'),
+      fields: z.array(z.string()).optional().describe('Danh sách các trường cần lấy, hỗ trợ đường dẫn lồng nhau và chế độ render (ví dụ: ["id", "name", "slug", "count"]). Thêm suffix ":minimal" hoặc ":full" để chọn chế độ render cho từng trường (mặc định theo render_mode). Nếu truyền, chỉ trả về các trường này (giống GraphQL). Bỏ trống để trả về mặc định.'),
+      render_mode: z.enum(['minimal', 'full']).optional().describe('Chế độ render mặc định cho các trường: minimal (ẩn raw/protected và các trường hệ thống) hoặc full (giữ nguyên raw/protected). Mặc định minimal.'),
     },
-    async ({ id }) => {
+    async ({ id, fields, render_mode }) => {
       const res = await apiClient.get<WpCategory>(`categories/${id}`);
-      return createFilteredResponse(res, 'category');
+      return createFilteredResponse(res, 'category', render_mode || 'minimal', fields);
     }
   );
 
@@ -92,10 +102,17 @@ export function registerTaxonomyTools(server: McpServer): void {
       search: z.string().max(100).optional().describe('Từ khóa tìm kiếm thẻ tag'),
       per_page: z.number().int().positive().max(100).optional().describe('Số lượng thẻ trên mỗi trang (mặc định 10, tối đa 100)'),
       page: z.number().int().positive().optional().describe('Số trang cần lấy'),
+      fields: z.array(z.string()).optional().describe('Danh sách các trường cần lấy, hỗ trợ đường dẫn lồng nhau và chế độ render (ví dụ: ["id", "name", "slug", "count"]). Thêm suffix ":minimal" hoặc ":full" để chọn chế độ render cho từng trường (mặc định theo render_mode). Nếu truyền, chỉ trả về các trường này (giống GraphQL). Bỏ trống để trả về mặc định.'),
+      render_mode: z.enum(['minimal', 'full']).optional().describe('Chế độ render mặc định cho các trường: minimal (ẩn raw/protected và các trường hệ thống) hoặc full (giữ nguyên raw/protected). Mặc định minimal.'),
     },
     async (params) => {
-      const res = await apiClient.get<WpTag[]>('tags', params);
-      return createFilteredResponse(res, 'tag');
+      const queryParams: Record<string, string | number | boolean | undefined> = {
+        search: params.search,
+        per_page: params.per_page,
+        page: params.page,
+      };
+      const res = await apiClient.get<WpTag[]>('tags', queryParams);
+      return createFilteredResponse(res, 'tag', params.render_mode || 'minimal', params.fields);
     }
   );
 
@@ -105,10 +122,12 @@ export function registerTaxonomyTools(server: McpServer): void {
     'Lấy thông tin chi tiết một thẻ bài viết theo ID.',
     {
       id: z.number().int().positive().describe('ID của thẻ tag'),
+      fields: z.array(z.string()).optional().describe('Danh sách các trường cần lấy, hỗ trợ đường dẫn lồng nhau và chế độ render (ví dụ: ["id", "name", "slug", "count"]). Thêm suffix ":minimal" hoặc ":full" để chọn chế độ render cho từng trường (mặc định theo render_mode). Nếu truyền, chỉ trả về các trường này (giống GraphQL). Bỏ trống để trả về mặc định.'),
+      render_mode: z.enum(['minimal', 'full']).optional().describe('Chế độ render mặc định cho các trường: minimal (ẩn raw/protected và các trường hệ thống) hoặc full (giữ nguyên raw/protected). Mặc định minimal.'),
     },
-    async ({ id }) => {
+    async ({ id, fields, render_mode }) => {
       const res = await apiClient.get<WpTag>(`tags/${id}`);
-      return createFilteredResponse(res, 'tag');
+      return createFilteredResponse(res, 'tag', render_mode || 'minimal', fields);
     }
   );
 

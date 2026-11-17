@@ -47,6 +47,12 @@ Model Context Protocol (MCP) server xây dựng bằng **Node.js** & **TypeScrip
 - `wp_rankmath_set_description`: Cập nhật riêng mô tả SEO Meta Description (`rank_math_description`, khuyến nghị 120-160 ký tự, kèm CTA).
 - `wp_rankmath_set_keywords`: Cập nhật bộ từ khóa SEO gồm đúng 1 từ khóa chính (`primary_keyword`) và tối đa 4 từ khóa phụ (`secondary_keywords`), tự động format theo định dạng chuẩn của RankMath.
 
+### 7. Tối Ưu Hóa Token & Bộ Lọc Phản Hồi (Token Optimization & Response Filter)
+Tất cả các công cụ danh sách và chi tiết (`wp_post_*`, `wp_page_*`, `wp_media_*`, `wp_category_*`, `wp_tag_*`) đều được tích hợp bộ lọc phản hồi thông minh:
+- **Tự động tinh giản (Minimal mode)**: Loại bỏ các trường siêu dữ liệu cồng kềnh của WordPress (`_links`, `guid`, `class_list`, `wp:*`, `curies`, `about`...) và ẩn trường `raw`/`protected` không cần thiết, giúp tiết kiệm tới 70-80% token cho AI Agent.
+- **Chọn trường linh hoạt kiểu GraphQL (`fields`)**: Hỗ trợ chỉ định chính xác danh sách trường cần lấy (ví dụ `fields: ["id", "title.rendered", "slug"]`) hoặc chỉ định mode từng trường (`content.rendered:full`).
+- **Chế độ đầy đủ (`render_mode: full`)**: Giữ lại toàn bộ dữ liệu gốc của WordPress REST API khi cần kiểm tra chuyên sâu.
+
 ---
 
 ## Cài Đặt & Build

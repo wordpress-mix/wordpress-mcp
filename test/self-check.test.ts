@@ -15,7 +15,7 @@ import { registerTaxonomyTools } from '../src/tools/taxonomy.tools.js';
 
 test('Cấu hình mặc định của WordPress MCP Server', () => {
   assert.equal(config.serverName, 'wordpress-mcp-nodejs');
-  assert.equal(config.serverVersion, '1.0.0');
+  assert.equal(config.serverVersion, '1.1.0');
   assert.ok(config.wpUrl.length > 0);
 });
 
@@ -137,8 +137,24 @@ test('Validation schema của các tools phản ánh đúng quy tắc WordPress 
   );
   assert.equal(tools.wp_post_create.inputSchema.safeParse({ title: '' }).success, false, 'Tiêu đề không được để trống');
 
-  assert.equal(tools.wp_post_list.inputSchema.safeParse({ search: 'tin tức', per_page: 50 }).success, true);
+  assert.equal(
+    tools.wp_post_list.inputSchema.safeParse({
+      search: 'tin tức',
+      per_page: 50,
+      fields: ['id', 'title.rendered', 'content.rendered:full'],
+      render_mode: 'minimal',
+    }).success,
+    true
+  );
   assert.equal(tools.wp_post_list.inputSchema.safeParse({ per_page: 150 }).success, false, 'per_page tối đa là 100');
+  assert.equal(
+    tools.wp_media_list.inputSchema.safeParse({
+      per_page: 20,
+      fields: ['id', 'source_url', 'alt_text'],
+      render_mode: 'full',
+    }).success,
+    true
+  );
 
   // 2. wp_category_create
   assert.equal(

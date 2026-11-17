@@ -38,10 +38,20 @@ export function registerMediaTools(server: McpServer): void {
       parent: z.number().int().optional().describe('ID bài viết cha chứa tệp media đính kèm'),
       per_page: z.number().int().positive().max(100).optional().describe('Số lượng tệp trên mỗi trang (mặc định 10, tối đa 100)'),
       page: z.number().int().positive().optional().describe('Số trang cần lấy'),
+      fields: z.array(z.string()).optional().describe('Danh sách các trường cần lấy, hỗ trợ đường dẫn lồng nhau và chế độ render (ví dụ: ["id", "source_url", "alt_text", "media_details.sizes"]). Thêm suffix ":minimal" hoặc ":full" để chọn chế độ render cho từng trường (mặc định theo render_mode). Nếu truyền, chỉ trả về các trường này (giống GraphQL). Bỏ trống để trả về mặc định.'),
+      render_mode: z.enum(['minimal', 'full']).optional().describe('Chế độ render mặc định cho các trường: minimal (ẩn raw/protected và các trường hệ thống) hoặc full (giữ nguyên raw/protected). Mặc định minimal.'),
     },
     async (params) => {
-      const res = await apiClient.get<WpMedia[]>('media', params);
-      return createFilteredResponse(res, 'media');
+      const queryParams: Record<string, string | number | boolean | undefined> = {
+        search: params.search,
+        media_type: params.media_type,
+        mime_type: params.mime_type,
+        parent: params.parent,
+        per_page: params.per_page,
+        page: params.page,
+      };
+      const res = await apiClient.get<WpMedia[]>('media', queryParams);
+      return createFilteredResponse(res, 'media', params.render_mode || 'minimal', params.fields);
     }
   );
 
@@ -52,10 +62,12 @@ export function registerMediaTools(server: McpServer): void {
     {
       id: z.number().int().positive().describe('ID của tệp media'),
       context: z.enum(['view', 'edit']).optional().describe('Ngữ cảnh lấy dữ liệu'),
+      fields: z.array(z.string()).optional().describe('Danh sách các trường cần lấy, hỗ trợ đường dẫn lồng nhau và chế độ render (ví dụ: ["id", "source_url", "alt_text", "media_details.sizes"]). Thêm suffix ":minimal" hoặc ":full" để chọn chế độ render cho từng trường (mặc định theo render_mode). Nếu truyền, chỉ trả về các trường này (giống GraphQL). Bỏ trống để trả về mặc định.'),
+      render_mode: z.enum(['minimal', 'full']).optional().describe('Chế độ render mặc định cho các trường: minimal (ẩn raw/protected và các trường hệ thống) hoặc full (giữ nguyên raw/protected). Mặc định minimal.'),
     },
-    async ({ id, context }) => {
+    async ({ id, context, fields, render_mode }) => {
       const res = await apiClient.get<WpMedia>(`media/${id}`, { context });
-      return createFilteredResponse(res, 'media');
+      return createFilteredResponse(res, 'media', render_mode || 'minimal', fields);
     }
   );
 
