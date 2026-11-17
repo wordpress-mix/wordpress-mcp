@@ -31,7 +31,6 @@ Model Context Protocol (MCP) server xây dựng bằng **Node.js** & **TypeScrip
 ### 4. Quản lý Phân loại (Taxonomies: Categories & Tags)
 - `wp_category_list`: Danh sách chuyên mục (categories), hỗ trợ phân trang và tìm kiếm.
 - `wp_category_get`: Chi tiết chuyên mục kèm số lượng bài viết và mô tả.
-- `wp_category_create`: Tạo chuyên mục mới (hỗ trợ `parent`, `slug`, `description`).
 - `wp_tag_list`: Danh sách thẻ bài viết (tags).
 - `wp_tag_get`: Chi tiết thẻ bài viết.
 - `wp_tag_create`: Tạo thẻ bài viết mới.

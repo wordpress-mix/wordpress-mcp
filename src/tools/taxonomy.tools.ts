@@ -47,52 +47,6 @@ export function registerTaxonomyTools(server: McpServer): void {
     }
   );
 
-  // 3. Tạo chuyên mục mới
-  server.tool(
-    'wp_category_create',
-    'Tạo một chuyên mục mới trong WordPress.',
-    {
-      name: z.string().min(1).describe('Tên chuyên mục'),
-      slug: z.string().optional().describe('Đường dẫn tĩnh (slug) của chuyên mục'),
-      description: z.string().optional().describe('Mô tả chuyên mục'),
-      parent: z.number().int().optional().describe('ID chuyên mục cha'),
-    },
-    async (payload) => {
-      const res = await apiClient.post<WpCategory>('categories', payload);
-      return createFilteredResponse(res, 'category');
-    }
-  );
-
-  // 4. Cập nhật chuyên mục
-  server.tool(
-    'wp_category_update',
-    'Cập nhật tên, mô tả hoặc slug của một chuyên mục theo ID.',
-    {
-      id: z.number().int().positive().describe('ID chuyên mục cần cập nhật'),
-      name: z.string().optional().describe('Tên mới'),
-      slug: z.string().optional().describe('Slug mới'),
-      description: z.string().optional().describe('Mô tả mới'),
-      parent: z.number().int().optional().describe('ID chuyên mục cha mới'),
-    },
-    async ({ id, ...payload }) => {
-      const res = await apiClient.post<WpCategory>(`categories/${id}`, payload);
-      return createFilteredResponse(res, 'category');
-    }
-  );
-
-  // 5. Xóa chuyên mục
-  server.tool(
-    'wp_category_delete',
-    'Xóa chuyên mục theo ID khỏi WordPress.',
-    {
-      id: z.number().int().positive().describe('ID chuyên mục cần xóa'),
-      force: z.boolean().default(true).describe('Bắt buộc đặt true để xóa'),
-    },
-    async ({ id, force }) => {
-      const res = await apiClient.delete<WpCategory>(`categories/${id}`, { force });
-      return createFilteredResponse(res, 'category');
-    }
-  );
 
   // 6. Danh sách thẻ (Tags)
   server.tool(

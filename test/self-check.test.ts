@@ -82,9 +82,6 @@ test('Đăng ký đầy đủ toàn bộ các MCP Tools WordPress', () => {
     // Taxonomies
     'wp_category_list',
     'wp_category_get',
-    'wp_category_create',
-    'wp_category_update',
-    'wp_category_delete',
     'wp_tag_list',
     'wp_tag_get',
     'wp_tag_create',
@@ -156,18 +153,7 @@ test('Validation schema của các tools phản ánh đúng quy tắc WordPress 
     true
   );
 
-  // 2. wp_category_create
-  assert.equal(
-    tools.wp_category_create.inputSchema.safeParse({
-      name: 'Công nghệ',
-      slug: 'cong-nghe',
-      description: 'Chuyên mục công nghệ',
-    }).success,
-    true
-  );
-  assert.equal(tools.wp_category_create.inputSchema.safeParse({ name: '' }).success, false, 'Tên chuyên mục không được trống');
-
-  // 3. wp_rankmath_set_keywords (1 chính, tối đa 4 phụ)
+  // 2. wp_rankmath_set_keywords (1 chính, tối đa 4 phụ)
   assert.equal(
     tools.wp_rankmath_set_keywords.inputSchema.safeParse({
       post_id: 1,
