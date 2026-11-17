@@ -14,5 +14,5 @@ export const config: AppConfig = {
   wpUsername: process.env.WP_USERNAME || process.env.WORDPRESS_USERNAME || '',
   wpAppPassword: process.env.WP_APP_PASSWORD || process.env.WORDPRESS_APP_PASSWORD || '',
   serverName: 'wordpress-mcp-nodejs',
-  serverVersion: '1.2.0',
+  serverVersion: '1.3.0',
 };
